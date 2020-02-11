@@ -1,8 +1,13 @@
 #1 引入需要的模块
 import pygame
 import random
+import time
 #1 配置图片地址
 IMAGE_PATH = 'imgs/'
+# 配置音乐地址
+MUSIC_PATH = 'music/'
+# 配置音效地址
+SOUND_PATH = 'sound/'
 #1 设置页面宽高
 scrrr_width=800
 scrrr_height =560
@@ -142,18 +147,21 @@ class Zombie(pygame.sprite.Sprite):
         super(Zombie, self).__init__()
         self.image = pygame.image.load('imgs/zombie.png')
         self.rect = self.image.get_rect()
+        self.x=x
         self.rect.x = x
         self.rect.y = y
         self.hp = 1000
         self.damage = 2
-        self.speed = 1
+        self.speed = 0.6
         self.live = True
         self.stop = False
     #9 僵尸的移动
     def move_zombie(self):
         if self.live and not self.stop:
-            self.rect.x -= self.speed
+            self.x-=self.speed
+            self.rect.x = self.x
             if self.rect.x < -80:
+                
                 #8 调用游戏结束方法
                 MainGame().gameOver()
 
@@ -330,10 +338,17 @@ class MainGame():
                 zombie.hit_plant()
             else:
                 MainGame.zombie_list.remove(zombie)
+    # 初始化bgm
+    def playbgm(self):
+        pygame.mixer.init()
+        pygame.mixer.music.load(MUSIC_PATH+'Laura Shigihara - Graze the Roof.mp3')
+        pygame.mixer.music.play(-1,0)
     #1 开始游戏
     def start_game(self):
         #1 初始化窗口
         self.init_window()
+        # 播放BGM
+        self.playbgm()
         #3 初始化坐标和地图
         self.init_plant_points()
         self.init_map()
@@ -372,6 +387,10 @@ class MainGame():
 
     #10 程序结束方法
     def gameOver(self):
+        pygame.mixer.music.stop()
+        pygame.mixer.music.load(SOUND_PATH+'gameover.mp3')
+        pygame.mixer.music.play(1,0)
+        pygame.time.wait(4000)
         MainGame.window.blit(self.draw_text('游戏结束', 50, (255, 0, 0)), (300, 200))
         print('游戏结束')
         pygame.time.wait(400)
