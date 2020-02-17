@@ -2,6 +2,7 @@
 import pygame
 import random
 import time
+import sys
 #1 配置图片地址
 IMAGE_PATH = 'imgs/'
 # 配置音乐地址
@@ -71,7 +72,7 @@ class PeaShooter(Plant):
         self.rect = self.image.get_rect()
         self.rect.x = x
         self.rect.y = y
-        self.price = 50
+        self.price = 100
         self.hp = 200
         #6 发射计数器
         self.shot_count = 0
@@ -95,6 +96,43 @@ class PeaShooter(Plant):
                 self.shot_count = 0
 
     #6 将豌豆射手加入到窗口中的方法
+    def display_peashooter(self):
+        MainGame.window.blit(self.image,self.rect)
+
+
+#6.5 寒冰射手类
+class IcePeaShooter(Plant):
+    def __init__(self,x,y):
+        super(IcePeaShooter, self).__init__()
+        # self.image 为一个 surface
+        self.image = pygame.image.load('imgs/icepeashooter.png')
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.price = 175
+        self.hp = 200
+        #6 发射计数器
+        self.shot_count = 0
+
+    #6 增加射击方法
+    def shot(self):
+        #6 记录是否应该射击
+        should_fire = False
+        for zombie in MainGame.zombie_list:
+            if zombie.rect.y == self.rect.y and zombie.rect.x < 800 and zombie.rect.x > self.rect.x:
+                should_fire = True
+        #6 如果活着
+        if self.live and should_fire:
+            self.shot_count += 1
+            #6 计数器到25发射一次
+            if self.shot_count == 25:
+                #6 基于当前豌豆射手的位置，创建子弹
+                icepeabullet = IcePeaBullet(self)
+                #6 将子弹存储到子弹列表中
+                MainGame.icepeabullet_list.append(icepeabullet)
+                self.shot_count = 0
+
+    #6 将寒冰射手加入到窗口中的方法
     def display_peashooter(self):
         MainGame.window.blit(self.image,self.rect)
 
@@ -141,10 +179,56 @@ class PeaBullet(pygame.sprite.Sprite):
 
     def display_peabullet(self):
         MainGame.window.blit(self.image,self.rect)
+
+#7.5 寒冰子弹类
+class IcePeaBullet(pygame.sprite.Sprite):
+    def __init__(self,peashooter):
+        self.live = True
+        self.image = pygame.image.load('imgs/icepeabullet.png')
+        self.damage = 50
+        self.speed  = 10
+        self.rect = self.image.get_rect()
+        self.rect.x = peashooter.rect.x + 60
+        self.rect.y = peashooter.rect.y + 15
+
+    def move_bullet(self):
+        #7 在屏幕范围内，实现往右移动
+        if self.rect.x < scrrr_width:
+            self.rect.x += self.speed
+        else:
+            self.live = False
+
+    #7 新增，子弹与僵尸的碰撞
+    def hit_zombie(self):
+        for zombie in MainGame.zombie_list:
+            if pygame.sprite.collide_rect(self,zombie):
+                #打中僵尸之后，修改子弹的状态，
+                self.live = False
+                #僵尸掉血
+                zombie.hp -= self.damage
+                zombie.speedreduction=True
+                if zombie.hp <= 0:
+                    zombie.live = False
+                    self.nextLevel()
+    #7闯关方法
+    def nextLevel(self):
+        MainGame.score += 20
+        MainGame.remnant_score -=20
+        for i in range(1,100):
+            if MainGame.score==100*i and MainGame.remnant_score==0:
+                    MainGame.remnant_score=100*i
+                    MainGame.shaoguan+=1
+                    MainGame.produce_zombie+=50
+
+
+
+    def display_peabullet(self):
+        MainGame.window.blit(self.image,self.rect)
 #9 僵尸类
 class Zombie(pygame.sprite.Sprite):
     def __init__(self,x,y):
         super(Zombie, self).__init__()
+        self.speedreduction=False
         self.image = pygame.image.load('imgs/zombie.png')
         self.rect = self.image.get_rect()
         self.x=x
@@ -152,18 +236,20 @@ class Zombie(pygame.sprite.Sprite):
         self.rect.y = y
         self.hp = 1000
         self.damage = 2
-        self.speed = 0.6
+        self.speed = 0.5
         self.live = True
         self.stop = False
     #9 僵尸的移动
     def move_zombie(self):
         if self.live and not self.stop:
+            if self.speedreduction:
+                self.speed=0.3
             self.x-=self.speed
             self.rect.x = self.x
             if self.rect.x < -80:
                 
                 #8 调用游戏结束方法
-                MainGame().gameOver()
+                MainGame().gameOverz()
 
     #9 判断僵尸是否碰撞到植物，如果碰撞，调用攻击植物的方法
     def hit_plant(self):
@@ -197,7 +283,7 @@ class MainGame():
     shaoguan = 1
     score = 0
     remnant_score = 100
-    money = 200
+    money = 50
     #3 存储所有地图坐标点
     map_points_list = []
     #3 存储所有的地图块
@@ -206,6 +292,8 @@ class MainGame():
     plants_list = []
     #7 存储所有豌豆子弹的列表
     peabullet_list = []
+    #8存储所有寒冰子弹的列表
+    icepeabullet_list = []
     #9 新增存储所有僵尸的列表
     zombie_list = []
     count_zombie = 0
@@ -272,6 +360,9 @@ class MainGame():
                 elif isinstance(plant, PeaShooter):
                     plant.display_peashooter()
                     plant.shot()
+                elif isinstance(plant, IcePeaShooter):
+                    plant.display_peashooter()
+                    plant.shot()
             else:
                 MainGame.plants_list.remove(plant)
 
@@ -285,6 +376,14 @@ class MainGame():
                 b.hit_zombie()
             else:
                 MainGame.peabullet_list.remove(b)
+        for ib in MainGame.icepeabullet_list:
+            if ib.live:
+                ib.display_peabullet()
+                ib.move_bullet()
+                # v1.9 调用子弹是否打中僵尸的方法
+                ib.hit_zombie()
+            else:
+                MainGame.icepeabullet_list.remove(ib)
 
     #8事件处理
 
@@ -314,12 +413,19 @@ class MainGame():
                         map.can_grow = False
                         MainGame.money -= 50
                 elif e.button == 3:
-                    if map.can_grow and MainGame.money >= 50:
+                    if map.can_grow and MainGame.money >= 100:
                         peashooter = PeaShooter(map.position[0], map.position[1])
                         MainGame.plants_list.append(peashooter)
                         print('当前植物列表长度:{}'.format(len(MainGame.plants_list)))
                         map.can_grow = False
-                        MainGame.money -= 50
+                        MainGame.money -= 100
+                elif e.button == 2:
+                    if map.can_grow and MainGame.money >= 0:
+                        icepeashooter = IcePeaShooter(map.position[0], map.position[1])
+                        MainGame.plants_list.append(icepeashooter)
+                        print('当前植物列表长度:{}'.format(len(MainGame.plants_list)))
+                        map.can_grow = False
+                        MainGame.money -= 0
 
     #9 新增初始化僵尸的方法
     def init_zombies(self):
@@ -384,18 +490,31 @@ class MainGame():
             pygame.time.wait(10)
             #1 实时更新
             pygame.display.update()
-
-    #10 程序结束方法
-    def gameOver(self):
+    # 因僵尸达到屋内导致游戏结束
+    def gameOverz(self):
+        
+        MainGame.window.blit(self.draw_text('僵尸吃掉了你的脑子！！！！', 50, (255, 0, 0)), (150, 250))
+        pygame.display.update()
         pygame.mixer.music.stop()
         pygame.mixer.music.load(SOUND_PATH+'gameover.mp3')
         pygame.mixer.music.play(1,0)
         pygame.time.wait(4000)
-        MainGame.window.blit(self.draw_text('游戏结束', 50, (255, 0, 0)), (300, 200))
         print('游戏结束')
         pygame.time.wait(400)
         global GAMEOVER
         GAMEOVER = True
+
+        
+    #10 程序结束方法
+    def gameOver(self):
+        
+        MainGame.window.blit(self.draw_text('游戏结束', 50, (255, 0, 0)), (300, 200))
+        pygame.display.update()
+        print('游戏结束')
+        pygame.time.wait(1000)
+        global GAMEOVER
+        GAMEOVER = True
+        
 #1 启动主程序
 if __name__ == '__main__':
     game = MainGame()
