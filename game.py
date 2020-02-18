@@ -19,7 +19,7 @@ LOG = '文件:{}中的方法:{}出错'.format(__file__,__name__)
 #3 创建地图类
 class Map():
     #3 存储两张不同颜色的图片名称
-    map_names_list = [IMAGE_PATH + 'map1.png', IMAGE_PATH + 'map2.png']
+    map_names_list = [IMAGE_PATH + 'map5.png', IMAGE_PATH + 'map4.png']
     #3 初始化地图
     def __init__(self, x, y, img_index):
         self.image = pygame.image.load(Map.map_names_list[img_index])
@@ -57,11 +57,25 @@ class Sunflower(Plant):
     #5 新增功能：生成阳光
     def produce_money(self):
         self.time_count += 1
-        if self.time_count == 25:
-            MainGame.money += 5
+        if self.time_count == 125:
+            MainGame.money += 25
             self.time_count = 0
     #5 向日葵加入到窗口中
     def display_sunflower(self):
+        MainGame.window.blit(self.image,self.rect)
+# 坚果类
+class Nut(Plant):
+    def __init__(self,x,y):
+        super(Nut, self).__init__()
+        self.image = pygame.image.load('imgs/nut.png')
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+        self.price = 50
+        self.hp = 1000
+        
+    #5 坚果加入到窗口中
+    def display_nut(self):
         MainGame.window.blit(self.image,self.rect)
 #6 豌豆射手类
 class PeaShooter(Plant):
@@ -206,7 +220,7 @@ class IcePeaBullet(pygame.sprite.Sprite):
                 self.live = False
                 #僵尸掉血
                 zombie.hp -= self.damage
-                zombie.speedreduction=True
+                zombie.speedreduction=125
                 if zombie.hp <= 0:
                     zombie.live = False
                     self.nextLevel()
@@ -228,7 +242,7 @@ class IcePeaBullet(pygame.sprite.Sprite):
 class Zombie(pygame.sprite.Sprite):
     def __init__(self,x,y):
         super(Zombie, self).__init__()
-        self.speedreduction=False
+        self.speedreduction=0
         self.image = pygame.image.load('imgs/zombie.png')
         self.rect = self.image.get_rect()
         self.x=x
@@ -242,9 +256,11 @@ class Zombie(pygame.sprite.Sprite):
     #9 僵尸的移动
     def move_zombie(self):
         if self.live and not self.stop:
-            if self.speedreduction:
-                self.speed=0.3
-            self.x-=self.speed
+            if self.speedreduction>0:
+                self.x-=0.4*self.speed
+                self.speedreduction-=1
+            else:
+                self.x-=self.speed
             self.rect.x = self.x
             if self.rect.x < -80:
                 
@@ -349,7 +365,7 @@ class MainGame():
             for map in temp_map_list:
                 map.load_map()
 
-    #6 增加豌豆射手发射处理
+    #6 加载植物
     def load_plants(self):
         for plant in MainGame.plants_list:
             #6 优化加载植物的处理逻辑
@@ -363,6 +379,9 @@ class MainGame():
                 elif isinstance(plant, IcePeaShooter):
                     plant.display_peashooter()
                     plant.shot()
+                elif isinstance(plant, Nut):
+                    plant.display_nut()
+                    #plant.shot()
             else:
                 MainGame.plants_list.remove(plant)
 
@@ -426,6 +445,13 @@ class MainGame():
                         print('当前植物列表长度:{}'.format(len(MainGame.plants_list)))
                         map.can_grow = False
                         MainGame.money -= 0
+                elif e.button == 4:
+                    if map.can_grow and MainGame.money >= 50:
+                        nut = Nut(map.position[0], map.position[1])
+                        MainGame.plants_list.append(nut)
+                        print('当前植物列表长度:{}'.format(len(MainGame.plants_list)))
+                        map.can_grow = False
+                        MainGame.money -= 50
 
     #9 新增初始化僵尸的方法
     def init_zombies(self):
