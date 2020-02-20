@@ -257,7 +257,7 @@ class Zombie(pygame.sprite.Sprite):
     def move_zombie(self):
         if self.live and not self.stop:
             if self.speedreduction>0:
-                self.x-=0.4*self.speed
+                self.x-=0.6*self.speed
                 self.speedreduction-=1
             else:
                 self.x-=self.speed
@@ -330,8 +330,8 @@ class MainGame():
 
     #2 加载帮助提示
     def load_help_text(self):
-        text1 = self.draw_text('1.按左键创建向日葵 2.按右键创建豌豆射手', 26, (255, 0, 0))
-        MainGame.window.blit(text1, (5, 5))
+        text1 = self.draw_text('操作说明-左键：向日癸 右键：豌豆射手 中键：寒冰射手 滚轮上：坚果 滚轮下：铲子', 15, (0, 150, 150))
+        MainGame.window.blit(text1, (200, 5))
 
     #3 初始化坐标点
     def init_plant_points(self):
@@ -439,12 +439,12 @@ class MainGame():
                         map.can_grow = False
                         MainGame.money -= 100
                 elif e.button == 2:
-                    if map.can_grow and MainGame.money >= 0:
+                    if map.can_grow and MainGame.money >= 175:
                         icepeashooter = IcePeaShooter(map.position[0], map.position[1])
                         MainGame.plants_list.append(icepeashooter)
                         print('当前植物列表长度:{}'.format(len(MainGame.plants_list)))
                         map.can_grow = False
-                        MainGame.money -= 0
+                        MainGame.money -= 175
                 elif e.button == 4:
                     if map.can_grow and MainGame.money >= 50:
                         nut = Nut(map.position[0], map.position[1])
@@ -452,6 +452,14 @@ class MainGame():
                         print('当前植物列表长度:{}'.format(len(MainGame.plants_list)))
                         map.can_grow = False
                         MainGame.money -= 50
+                elif e.button == 5:
+                    if not map.can_grow:
+                        for plant in MainGame.plants_list:
+                            if plant.rect.x==map.position[0] and plant.rect.y==map.position[1]:
+                                plant.live=False
+                                map.can_grow=True
+                                break
+                         
 
     #9 新增初始化僵尸的方法
     def init_zombies(self):
@@ -491,10 +499,10 @@ class MainGame():
             #1 渲染白色背景
             MainGame.window.fill((255, 255, 255))
             #2 渲染的文字和坐标位置
-            MainGame.window.blit(self.draw_text('当前钱数$: {}'.format(MainGame.money), 26, (255, 0, 0)), (500, 40))
+            MainGame.window.blit(self.draw_text('当前阳光$: {}'.format(MainGame.money), 15, (0, 150, 150)), (500, 40))
             MainGame.window.blit(self.draw_text(
-                '当前关数{}，得分{},距离下关还差{}分'.format(MainGame.shaoguan, MainGame.score, MainGame.remnant_score), 26,
-                (255, 0, 0)), (5, 40))
+                '当前关数{}，得分{},距离下关还差{}分'.format(MainGame.shaoguan, MainGame.score, MainGame.remnant_score), 15,
+                (0, 150, 150)), (5, 60))
             self.load_help_text()
 
             #3 需要反复加载地图
@@ -540,6 +548,10 @@ class MainGame():
         pygame.time.wait(1000)
         global GAMEOVER
         GAMEOVER = True
+
+    def imageresource(self):
+        1
+        
         
 #1 启动主程序
 if __name__ == '__main__':
