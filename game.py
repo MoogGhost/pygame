@@ -187,7 +187,9 @@ class PeaBullet(pygame.sprite.Sprite):
             if MainGame.score==100*i and MainGame.remnant_score==0:
                     MainGame.remnant_score=100*i
                     MainGame.shaoguan+=1
-                    MainGame.produce_zombie+=50
+                    if MainGame.shaoguan==6:
+                        MainGame().gameOverw()
+                    MainGame.produce_zombie*=0.5
 
 
 
@@ -232,7 +234,9 @@ class IcePeaBullet(pygame.sprite.Sprite):
             if MainGame.score==100*i and MainGame.remnant_score==0:
                     MainGame.remnant_score=100*i
                     MainGame.shaoguan+=1
-                    MainGame.produce_zombie+=50
+                    if MainGame.shaoguan==6:
+                        MainGame().gameOverw()
+                    MainGame.produce_zombie*=0.5
 
 
 
@@ -330,8 +334,22 @@ class MainGame():
 
     #2 加载帮助提示
     def load_help_text(self):
-        text1 = self.draw_text('操作说明-左键：向日癸 右键：豌豆射手 中键：寒冰射手 滚轮上：坚果 滚轮下：铲子', 15, (0, 150, 150))
-        MainGame.window.blit(text1, (200, 5))
+        text1 = self.draw_text('左键：向日癸 右键：豌豆射手 ', 20, (0, 150, 150))
+        text2 = self.draw_text('中键：寒冰射手 滚轮上：坚果', 20, (0, 150, 150))
+        text3 = self.draw_text('滚轮下：铲子', 20, (0, 150, 150))
+        sun=pygame.image.load(IMAGE_PATH+"sun1.png")
+        card1=pygame.image.load(IMAGE_PATH+"card1.png")
+        card2=pygame.image.load(IMAGE_PATH+"card2.png")
+        card3=pygame.image.load(IMAGE_PATH+"card3.png")
+        card4=pygame.image.load(IMAGE_PATH+"card4.png")
+        MainGame.window.blit(sun, (10, 12))
+        MainGame.window.blit(card1, (450, 3))
+        MainGame.window.blit(card2, (540, 3))
+        MainGame.window.blit(card3, (630, 3))
+        MainGame.window.blit(card4, (720, 3))
+        MainGame.window.blit(text1, (150, 5))
+        MainGame.window.blit(text2, (150, 30))
+        MainGame.window.blit(text3, (300, 55))
 
     #3 初始化坐标点
     def init_plant_points(self):
@@ -341,7 +359,7 @@ class MainGame():
                 point = (x, y)
                 points.append(point)
             MainGame.map_points_list.append(points)
-            print("MainGame.map_points_list", MainGame.map_points_list)
+            #print("MainGame.map_points_list", MainGame.map_points_list)
 
     #3 初始化地图
     def init_map(self):
@@ -355,9 +373,9 @@ class MainGame():
                     map = Map(point[0] * 80, point[1] * 80, 1)
                 # 将地图块加入到窗口中
                 temp_map_list.append(map)
-                print("temp_map_list", temp_map_list)
+                #print("temp_map_list", temp_map_list)
             MainGame.map_list.append(temp_map_list)
-        print("MainGame.map_list", MainGame.map_list)
+        #print("MainGame.map_list", MainGame.map_list)
 
     #3 将地图加载到窗口中
     def load_map(self):
@@ -415,41 +433,41 @@ class MainGame():
                 self.gameOver()
             elif e.type == pygame.MOUSEBUTTONDOWN:
                 # print('按下鼠标按键')
-                print(e.pos)
+               # print(e.pos)
                 # print(e.button)#左键1  按下滚轮2 上转滚轮为4 下转滚轮为5  右键 3
 
                 x = e.pos[0] // 80
                 y = e.pos[1] // 80
-                print(x, y)
+                #print(x, y)
                 map = MainGame.map_list[y - 1][x]
-                print(map.position)
+                #print(map.position)
                 #8 增加创建时候的地图装填判断以及金钱判断
                 if e.button == 1:
                     if map.can_grow and MainGame.money >= 50:
                         sunflower = Sunflower(map.position[0], map.position[1])
                         MainGame.plants_list.append(sunflower)
-                        print('当前植物列表长度:{}'.format(len(MainGame.plants_list)))
+                        #print('当前植物列表长度:{}'.format(len(MainGame.plants_list)))
                         map.can_grow = False
                         MainGame.money -= 50
                 elif e.button == 3:
                     if map.can_grow and MainGame.money >= 100:
                         peashooter = PeaShooter(map.position[0], map.position[1])
                         MainGame.plants_list.append(peashooter)
-                        print('当前植物列表长度:{}'.format(len(MainGame.plants_list)))
+                        #print('当前植物列表长度:{}'.format(len(MainGame.plants_list)))
                         map.can_grow = False
                         MainGame.money -= 100
                 elif e.button == 2:
                     if map.can_grow and MainGame.money >= 175:
                         icepeashooter = IcePeaShooter(map.position[0], map.position[1])
                         MainGame.plants_list.append(icepeashooter)
-                        print('当前植物列表长度:{}'.format(len(MainGame.plants_list)))
+                        #print('当前植物列表长度:{}'.format(len(MainGame.plants_list)))
                         map.can_grow = False
                         MainGame.money -= 175
                 elif e.button == 4:
                     if map.can_grow and MainGame.money >= 50:
                         nut = Nut(map.position[0], map.position[1])
                         MainGame.plants_list.append(nut)
-                        print('当前植物列表长度:{}'.format(len(MainGame.plants_list)))
+                        #print('当前植物列表长度:{}'.format(len(MainGame.plants_list)))
                         map.can_grow = False
                         MainGame.money -= 50
                 elif e.button == 5:
@@ -499,7 +517,7 @@ class MainGame():
             #1 渲染白色背景
             MainGame.window.fill((255, 255, 255))
             #2 渲染的文字和坐标位置
-            MainGame.window.blit(self.draw_text('当前阳光$: {}'.format(MainGame.money), 15, (0, 150, 150)), (500, 40))
+            MainGame.window.blit(self.draw_text('{}'.format(MainGame.money), 30, (0, 150, 150)), (60, 15))
             MainGame.window.blit(self.draw_text(
                 '当前关数{}，得分{},距离下关还差{}分'.format(MainGame.shaoguan, MainGame.score, MainGame.remnant_score), 15,
                 (0, 150, 150)), (5, 60))
@@ -517,9 +535,10 @@ class MainGame():
             self.load_zombies()
             #9 计数器增长，每数到100，调用初始化僵尸的方法
             MainGame.count_zombie += 1
-            if MainGame.count_zombie == MainGame.produce_zombie:
+            if MainGame.count_zombie > MainGame.produce_zombie:
                 self.init_zombies()
                 MainGame.count_zombie = 0
+                #print("刷新僵尸")
             #9 pygame自己的休眠
             pygame.time.wait(10)
             #1 实时更新
@@ -533,24 +552,32 @@ class MainGame():
         pygame.mixer.music.load(SOUND_PATH+'gameover.mp3')
         pygame.mixer.music.play(1,0)
         pygame.time.wait(4000)
-        print('游戏结束')
+        #print('游戏结束')
         pygame.time.wait(400)
         global GAMEOVER
         GAMEOVER = True
-
-        
+    # 因通关五关而游戏结束
+    def gameOverw(self): 
+        MainGame.window.blit(self.draw_text('你赢了！！！！', 50, (255, 0, 0)), (150, 250))
+        pygame.display.update()
+        pygame.mixer.music.stop()
+        pygame.mixer.music.load(SOUND_PATH+'win.mp3')
+        pygame.mixer.music.play(1,0)
+        pygame.time.wait(4000)
+        #print('游戏结束')
+        pygame.time.wait(400)
+        global GAMEOVER
+        GAMEOVER = True
     #10 程序结束方法
     def gameOver(self):
         
         MainGame.window.blit(self.draw_text('游戏结束', 50, (255, 0, 0)), (300, 200))
         pygame.display.update()
-        print('游戏结束')
-        pygame.time.wait(1000)
+        #print('游戏结束')
+        #pygame.time.wait(1000)
         global GAMEOVER
         GAMEOVER = True
 
-    def imageresource(self):
-        1
         
         
 #1 启动主程序
